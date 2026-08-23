@@ -1,0 +1,139 @@
+name: Cinematic Music Video Master
+
+# =============================================================================
+#  Fully automated. Picks one of the 3 projects, downloads the 2 YouTube sources
+#  on GitHub's open-internet runner, runs the cinematic engine (everything from
+#  the studio spec EXCEPT audio), and uploads a correctly-named 4K master to a
+#  GitHub Release for direct download.
+#
+#  Daily run = I commit the day's project config under projects/ and trigger
+#  this workflow with project + final_name. You can also run it from Actions.
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (branch) holding the engine + project configs'
+        required: true
+        default: 'arena/01a02dba-video-master-edits'
+      project:
+        description: 'Which project to render'
+        required: true
+        type: choice
+        default: 'p2_emraan_disha'
+        options:
+          - p1_yash_tara
+          - p2_emraan_disha
+          - p3_aryan_kriti
+      final_name:
+        description: 'Exact output file name (mp3 name + .mp4)'
+        required: true
+        default: 'Mousam Barish Ka.mp4'
+      resolution:
+        description: 'Master resolution (2160 = 4K)'
+        required: true
+        type: choice
+        default: '2160'
+        options: ['1080', '2160', '4320']
+      codec:
+        description: 'Encoder (h264 = compatible, hevc = smaller 4K)'
+        required: true
+        type: choice
+        default: 'h264'
+        options: ['h264', 'hevc']
+      target_seconds:
+        description: 'Trim final to N seconds (180 = 3:00)'
+        required: true
+        default: '180'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cinematic-master
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout engine + project configs (from the session branch)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Install FFmpeg + yt-dlp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m pip install --upgrade yt-dlp
+
+      - name: Show selected project config
+        run: |
+          echo "Project: ${{ github.event.inputs.project }}"
+          echo "--- sources.json ---"; cat projects/${{ github.event.inputs.project }}/sources.json
+          echo "--- schedule.json (clip count) ---"; python3 -c "import json;print(len(json.load(open('projects/${{ github.event.inputs.project }}/schedule.json'))),'clips')"
+
+      - name: Download the 2 source videos (best quality, merged mp4)
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, glob, os
+          proj = "${{ github.event.inputs.project }}"
+          s = json.load(open(f"projects/{proj}/sources.json"))
+          for role, info in s.items():
+              out, base = info['file'], info['file'].rsplit('.',1)[0]
+              print(f"Downloading {role} -> {out}")
+              subprocess.run(["yt-dlp","-f","bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b",
+                              "--merge-output-format","mp4","-o",base+".%(ext)s",
+                              info['url']], check=True)
+              produced=[p for p in sorted(glob.glob(base+".*")) if not p.endswith((".json",))]
+              assert produced, f"download failed for {role}"
+              if produced[-1]!=out: os.replace(produced[-1], out)
+              print("  ->",out, os.path.getsize(out)//1024,"KB")
+          PY
+          ls -la *.mp4
+
+      - name: Validate 36-clip schedule (each <=5s, alternation)
+        run: |
+          python3 - <<'PY'
+          import json
+          sch=json.load(open("projects/${{ github.event.inputs.project }}/schedule.json"))
+          def s(t): a,b,c=[float(x) for x in t.split(':')]; return a*3600+b*60+c
+          for i,c in enumerate(sch):
+              d=s(c['end'])-s(c['start']); assert 0<d<=5.0, f"clip {i} = {d}s"
+          assert all(sch[i]['source']!=sch[i+1]['source'] for i in range(len(sch)-1))
+          print(f"OK: {len(sch)} clips, all <=5s, strict alternation")
+          PY
+
+      - name: Run cinematic master engine (audio-free, 4K)
+        run: |
+          python3 cinematic_master.py \
+            --project "${{ github.event.inputs.project }}" \
+            --out "${{ github.event.inputs.final_name }}" \
+            --out-res "${{ github.event.inputs.resolution }}" \
+            --codec "${{ github.event.inputs.codec }}" \
+            --target "${{ github.event.inputs.target_seconds }}"
+
+      - name: Upload master artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-${{ github.event.inputs.project }}
+          path: "${{ github.event.inputs.final_name }}"
+          if-no-files-found: error
+
+      - name: Publish to GitHub Release (direct download link)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.run_id }}-${{ github.event.inputs.project }}"
+          name: "${{ github.event.inputs.final_name }}"
+          files: "${{ github.event.inputs.final_name }}"
+          body: |
+            **${{ github.event.inputs.final_name }}**
+            - Project: ${{ github.event.inputs.project }}
+            - Resolution: ${{ github.event.inputs.resolution }}p | Codec: ${{ github.event.inputs.codec }}
+            - Audio: none (song added later)
+            - 36 clips (alternating hero/heroine), each <=5s, cinematic grade + transitions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
