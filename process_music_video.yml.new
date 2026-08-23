@@ -1,0 +1,149 @@
+name: Cinematic Music Video Master
+
+# =============================================================================
+#  Fully automated pipeline. Does EVERYTHING from the studio spec EXCEPT audio
+#  (you add the song later). Produces a 4K filmic master named exactly as you
+#  request, uploaded to a GitHub Release for direct download.
+#
+#  Daily run = I commit the day's sources.json (YouTube links) + schedule.json
+#  (the 36-clip list from your slice_*.py), then trigger this workflow with the
+#  final file name. You can also run it manually from the Actions tab.
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      final_name:
+        description: 'Exact output file name (e.g. Mousam Barish Ka.mp4)'
+        required: true
+        default: 'Mousam Barish Ka.mp4'
+      resolution:
+        description: 'Master resolution'
+        required: true
+        type: choice
+        default: '2160'
+        options: ['1080', '2160', '4320']
+      codec:
+        description: 'Encoder (h264 = safe/compatible, hevc = smaller 4K)'
+        required: true
+        type: choice
+        default: 'h264'
+        options: ['h264', 'hevc']
+      target_seconds:
+        description: 'Trim final video to N seconds (180 = 3:00)'
+        required: true
+        default: '180'
+      hero_url_override:
+        description: 'Optional: paste hero YouTube URL to override sources.json'
+        required: false
+      heroine_url_override:
+        description: 'Optional: paste heroine YouTube URL to override sources.json'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cinematic-master
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repo (sources.json + schedule.json)
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg + yt-dlp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m pip install --upgrade yt-dlp
+
+      - name: Resolve source URLs (inputs override sources.json)
+        id: src
+        run: |
+          python3 - <<'PY'
+          import json, os
+          s = json.load(open('sources.json'))
+          hero_url = os.environ.get('HERO_OVERRIDE') or s['hero']['url']
+          heroine_url = os.environ.get('HEROINE_OVERRIDE') or s['heroine']['url']
+          open("sources.json","w").write(json.dumps({
+              "hero":     {"file": s['hero']['file'],     "url": hero_url},
+              "heroine":  {"file": s['heroine']['file'],  "url": heroine_url},
+          }, indent=2))
+          print("Hero URL    :", hero_url)
+          print("Heroine URL :", heroine_url)
+          PY
+        env:
+          HERO_OVERRIDE: ${{ github.event.inputs.hero_url_override }}
+          HEROINE_OVERRIDE: ${{ github.event.inputs.heroine_url_override }}
+
+      - name: Download source videos (best quality, merged mp4)
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, glob, os
+          s = json.load(open('sources.json'))
+          for role, info in s.items():
+              out = info['file']
+              base = out.rsplit('.', 1)[0]
+              print(f"Downloading {role} -> {out}")
+              subprocess.run([
+                  "yt-dlp",
+                  "-f", "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b",
+                  "--merge-output-format", "mp4",
+                  "-o", base + ".%(ext)s",
+                  info['url'],
+              ], check=True)
+              produced = sorted(glob.glob(base + ".*"))
+              produced = [p for p in produced if not p.endswith((".json",))]
+              assert produced, f"download failed for {role}"
+              if produced[-1] != out:
+                  os.replace(produced[-1], out)
+              print("  ->", out, os.path.getsize(out) // 1024, "KB")
+          PY
+          ls -la *.mp4
+
+      - name: Validate 36-clip schedule (each <=5s, alternation)
+        run: |
+          python3 - <<'PY'
+          import json
+          sch = json.load(open('schedule.json'))
+          assert len(sch) >= 2, "schedule must have clips"
+          def s(t): a,b,c=[float(x) for x in t.split(':')]; return a*3600+b*60+c
+          for i,c in enumerate(sch):
+              d = s(c['end'])-s(c['start'])
+              assert 0 < d <= 5.0, f"clip {i} is {d}s (must be <=5s)"
+          print(f"OK: {len(sch)} clips, all <=5s")
+          PY
+
+      - name: Run cinematic master engine (audio-free)
+        run: |
+          python3 cinematic_master.py \
+            --out "${{ github.event.inputs.final_name }}" \
+            --out-res "${{ github.event.inputs.resolution }}" \
+            --codec "${{ github.event.inputs.codec }}" \
+            --target "${{ github.event.inputs.target_seconds }}"
+
+      - name: Upload master artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-video
+          path: "${{ github.event.inputs.final_name }}"
+          if-no-files-found: error
+
+      - name: Publish to GitHub Release (direct download link)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.run_id }}-${{ github.run_attempt }}"
+          name: "${{ github.event.inputs.final_name }}"
+          files: "${{ github.event.inputs.final_name }}"
+          body: |
+            **${{ github.event.inputs.final_name }}**
+            - Resolution: ${{ github.event.inputs.resolution }}p
+            - Codec: ${{ github.event.inputs.codec }}
+            - Audio: none (add song later)
+            - Clips: 36 (alternating hero/heroine), each ≤5s
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
