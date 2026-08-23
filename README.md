@@ -26,6 +26,33 @@ into 36 alternating clips, graded, transitioned, and synced to one master song.
 
 ---
 
+## The three projects
+
+| Project | Hero / Heroine | Master song (final MP4 name) | Schedule / Config |
+|---------|---------------|------------------------------|-------------------|
+| 1 | Yash / Tara Sutaria | `Ishq Ki Barsaat Aayi.mp4` | `config/schedule_yash_tara.json` · `config/project_yash_tara.json` |
+| 2 | Emraan Hashmi / Disha Patani | `Mousam Barish Ka.mp4` | `config/schedule_emraan_disha.json` · `config/project_emraan_disha.json` |
+| 3 | Aryan Khan / Kriti Sanon | `Bheeg Na Jaaye dil.mp4` | `config/schedule_aryan_kriti.json` · `config/project_aryan_kriti.json` |
+
+Slice scripts (local use): `slice_yash_tara.py`, `slice_emraan_disha.py`, `slice_aryan_kriti.py`.
+The GitHub Action (`render_project.yml`) uses the JSON schedules via `scripts/slice_clips.py`.
+
+### Render one project via the GitHub Action
+
+```bash
+gh workflow run render_project.yml \
+  -f hero_url="<HERO_URL>" \
+  -f heroine_url="<HEROINE_URL>" \
+  -f audio_file="audio/Ishq Ki Barsaat Aayi.mp3" \
+  -f schedule="config/schedule_yash_tara.json" \
+  -f config="config/project_yash_tara.json" \
+  -f release_tag="v-yash-tara"
+```
+
+Repeat for the other two projects (swap URLs, schedule, config, `audio_file`,
+and `release_tag`). The finished MP4 lands in **Releases** — named after the
+song, exactly as requested.
+
 ## Daily workflow (how we'll use it)
 
 1. **You give me** the two YouTube links (Hero + Heroine) and, optionally, the
