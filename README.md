@@ -46,6 +46,12 @@ Releases, then hand me the link.
 
 ## Run it yourself (local)
 
+> **Egress note:** This sandbox (and many CI runners) may not be able to reach
+> `youtube.com` directly. If `yt-dlp` can't fetch a video here, use the GitHub
+> Action `download_4k.yml` / `process_music_video.yml` (GitHub's cloud has full
+> 1 Gbps egress) to obtain the masters, then slice + assemble locally with the
+> masters already present.
+
 ```bash
 # 0. needs ffmpeg + yt-dlp
 sudo apt install ffmpeg -y && pip install yt-dlp
