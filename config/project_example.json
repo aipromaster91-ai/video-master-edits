@@ -1,0 +1,181 @@
+{
+  "master_audio": "master_song.mp3",
+  "clips": [
+    {
+      "file": "Clip_01_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_02_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_03_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_04_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_05_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_06_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_07_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_08_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_09_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_10_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_11_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_12_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_13_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_14_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_15_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_16_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_17_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_18_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_19_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_20_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_21_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_22_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_23_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_24_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_25_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_26_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_27_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_28_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_29_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_30_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_31_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_32_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_33_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_34_Tara.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_35_Yash.mp4",
+      "speed": 1.0
+    },
+    {
+      "file": "Clip_36_Tara.mp4",
+      "speed": 1.0
+    }
+  ],
+  "settings": {
+    "clips_dir": "downloaded_clips_yash_tara",
+    "width": 3840,
+    "height": 2160,
+    "fps": 24,
+    "fill": true,
+    "fade": 0.25,
+    "transition_mode": "concat",
+    "transition": "fade",
+    "transition_duration": 0.4,
+    "watermark": {
+      "enabled": false,
+      "filter": "crop=iw:ih-80:0:40"
+    },
+    "grade": {
+      "contrast": 1.18,
+      "brightness": 0.02,
+      "saturation": 1.22,
+      "temperature": 5800,
+      "vignette": "PI/5",
+      "grain": 8
+    },
+    "output": {
+      "filename": "final_yash_tara_4k.mp4",
+      "duration": 180,
+      "fade_out": 1.5,
+      "codec": "libx265",
+      "crf": 20,
+      "preset": "medium",
+      "pix_fmt": "yuv420p"
+    }
+  }
+}

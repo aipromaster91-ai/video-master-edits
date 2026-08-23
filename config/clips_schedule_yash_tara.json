@@ -1,0 +1,225 @@
+{
+  "sources": {
+    "hero": "hero_yash.mp4",
+    "heroine": "heroine_tara.mp4"
+  },
+  "output_dir": "downloaded_clips_yash_tara",
+  "clips": [
+    {
+      "source": "hero",
+      "start": "00:00:15",
+      "end": "00:00:20",
+      "name": "Clip_01_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:00:20",
+      "end": "00:00:25",
+      "name": "Clip_02_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:00:35",
+      "end": "00:00:40",
+      "name": "Clip_03_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:00:35",
+      "end": "00:00:40",
+      "name": "Clip_04_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:00:55",
+      "end": "00:01:00",
+      "name": "Clip_05_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:00:50",
+      "end": "00:00:55",
+      "name": "Clip_06_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:01:15",
+      "end": "00:01:20",
+      "name": "Clip_07_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:01:05",
+      "end": "00:01:10",
+      "name": "Clip_08_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:01:35",
+      "end": "00:01:40",
+      "name": "Clip_09_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:01:20",
+      "end": "00:01:25",
+      "name": "Clip_10_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:01:45",
+      "end": "00:01:50",
+      "name": "Clip_11_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:01:35",
+      "end": "00:01:40",
+      "name": "Clip_12_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:02:00",
+      "end": "00:02:05",
+      "name": "Clip_13_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:01:50",
+      "end": "00:01:55",
+      "name": "Clip_14_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:02:10",
+      "end": "00:02:15",
+      "name": "Clip_15_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:02:05",
+      "end": "00:02:10",
+      "name": "Clip_16_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:02:25",
+      "end": "00:02:30",
+      "name": "Clip_17_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:02:20",
+      "end": "00:02:25",
+      "name": "Clip_18_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:02:35",
+      "end": "00:02:40",
+      "name": "Clip_19_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:02:35",
+      "end": "00:02:40",
+      "name": "Clip_20_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:02:50",
+      "end": "00:02:55",
+      "name": "Clip_21_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:02:50",
+      "end": "00:02:55",
+      "name": "Clip_22_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:05",
+      "end": "00:03:10",
+      "name": "Clip_23_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:05",
+      "end": "00:03:10",
+      "name": "Clip_24_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:15",
+      "end": "00:03:20",
+      "name": "Clip_25_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:20",
+      "end": "00:03:25",
+      "name": "Clip_26_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:25",
+      "end": "00:03:30",
+      "name": "Clip_27_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:30",
+      "end": "00:03:35",
+      "name": "Clip_28_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:30",
+      "end": "00:03:35",
+      "name": "Clip_29_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:40",
+      "end": "00:03:45",
+      "name": "Clip_30_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:40",
+      "end": "00:03:45",
+      "name": "Clip_31_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:48",
+      "end": "00:03:53",
+      "name": "Clip_32_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:45",
+      "end": "00:03:50",
+      "name": "Clip_33_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:03:55",
+      "end": "00:04:00",
+      "name": "Clip_34_Tara.mp4"
+    },
+    {
+      "source": "hero",
+      "start": "00:03:50",
+      "end": "00:03:55",
+      "name": "Clip_35_Yash.mp4"
+    },
+    {
+      "source": "heroine",
+      "start": "00:04:00",
+      "end": "00:04:05",
+      "name": "Clip_36_Tara.mp4"
+    }
+  ]
+}

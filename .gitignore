@@ -1,0 +1,31 @@
+# --- Media working files (never commit) ---
+*.mp4
+*.mkv
+*.mov
+*.webm
+*.m4v
+*.mp3
+*.wav
+*.m4a
+*.aac
+
+# Raw + intermediate masters
+hero_yash.mp4
+heroine_tara.mp4
+master_song.mp3
+hero.mp4
+heroine.mp4
+
+# Sliced clip folders
+downloaded_clips_*/
+clips/
+output/
+
+# Local renders
+final_*.mp4
+final_master_video.mp4
+
+# Python
+__pycache__/
+*.pyc
+.venv/
