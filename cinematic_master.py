@@ -245,6 +245,8 @@ def render_master(intermediates, durs, args, out_path):
 # --------------------------------------------------------------------------- #
 def main():
     ap = argparse.ArgumentParser(description="Cinematic music-video master (audio-free)")
+    ap.add_argument("--project", default=None,
+                    help="project dir under projects/ (sets sources/schedule paths)")
     ap.add_argument("--sources", default="sources.json")
     ap.add_argument("--schedule", default="schedule.json")
     ap.add_argument("--out", required=True, help="output file, e.g. 'Mousam Barish Ka.mp4'")
@@ -278,6 +280,14 @@ def main():
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--workdir", default=None)
     args = ap.parse_args()
+
+    # --project selects a config dir under projects/ (unless paths overridden)
+    if args.project:
+        base = f"projects/{args.project}"
+        if args.sources == "sources.json":
+            args.sources = f"{base}/sources.json"
+        if args.schedule == "schedule.json":
+            args.schedule = f"{base}/schedule.json"
 
     res_h = {"720": (1280, 720), "1080": (1920, 1080), "1440": (2560, 1440)}
     out_h = {"1080": (1920, 1080), "1440": (2560, 1440),
