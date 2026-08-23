@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Large media / intermediates (never commit)
+*.mp4
+*.mkv
+*.mov
+*.webm
+*.avi
+*.m4v
+*.mp3
+*.wav
+*.aac
+*.flac
+concat_list.txt
+downloaded_clips_*/
+cine_*/
+hero*.mp4
+heroine*.mp4

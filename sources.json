@@ -1,0 +1,14 @@
+{
+  "_README": "Daily config. 'file' = local filename the clip schedule expects; 'url' = YouTube link the workflow downloads. Confirm hero/heroine URL mapping before each run.",
+  "_HOW_TO_EDIT": "I (the agent) update this file each day from the links you send, then trigger the run.",
+  "hero": {
+    "_role": "Emraan Hashmi - Lut Gaye (CONFIRM this is the right link)",
+    "file": "hero_emraan.mp4",
+    "url": "https://www.youtube.com/watch?v=sCbbMZ-q4-I"
+  },
+  "heroine": {
+    "_role": "Disha Patani - Malang Title Track (CONFIRM this is the right link)",
+    "file": "heroine_disha.mp4",
+    "url": "https://www.youtube.com/watch?v=KBIq11mNB0I"
+  }
+}
