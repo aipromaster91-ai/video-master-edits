@@ -1,0 +1,35 @@
+{
+  "master_audio": "Bheeg Na Jaaye dil.mp3",
+  "settings": {
+    "clips_dir": "downloaded_clips_aryan_kriti",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "fill": true,
+    "fade": 0.25,
+    "transition_mode": "concat",
+    "transition": "fade",
+    "transition_duration": 0.4,
+    "watermark": {
+      "enabled": false,
+      "filter": "crop=iw:ih-80:0:40"
+    },
+    "grade": {
+      "contrast": 1.18,
+      "brightness": 0.02,
+      "saturation": 1.22,
+      "temperature": 5800,
+      "vignette": "PI/5",
+      "grain": 8
+    },
+    "output": {
+      "filename": "Bheeg Na Jaaye dil.mp4",
+      "duration": 180,
+      "fade_out": 1.5,
+      "codec": "libx264",
+      "crf": 20,
+      "preset": "medium",
+      "pix_fmt": "yuv420p"
+    }
+  }
+}

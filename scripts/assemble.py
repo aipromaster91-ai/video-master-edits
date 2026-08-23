@@ -84,6 +84,8 @@ def natural_sort_key(name):
 
 
 def discover_clips(clips_dir):
+    if not os.path.isdir(clips_dir):
+        return []
     exts = (".mp4", ".mkv", ".mov", ".webm", ".m4v")
     files = [f for f in os.listdir(clips_dir) if f.lower().endswith(exts)]
     files.sort(key=natural_sort_key)
