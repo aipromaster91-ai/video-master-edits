@@ -13,6 +13,10 @@ name: Cinematic Music Video Master
 on:
   workflow_dispatch:
     inputs:
+      ref:
+        description: 'Git ref (branch) holding the engine + project configs'
+        required: true
+        default: 'arena/01a02dba-video-master-edits'
       project:
         description: 'Which project to render'
         required: true
@@ -55,8 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - name: Checkout repo (engine + project configs)
+      - name: Checkout engine + project configs (from the session branch)
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
 
       - name: Install FFmpeg + yt-dlp
         run: |
