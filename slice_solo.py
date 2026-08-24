@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 import zipfile
 
 PAIRS = [
@@ -77,6 +78,32 @@ PAIRS = [
     }
 ]
 
+def download_video(url, output_path):
+    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000000:
+        print(f"✅ Video already downloaded: {output_path}")
+        return True
+
+    print(f"📥 Downloading: {url} -> {output_path}")
+    strategies = [
+        ["yt-dlp", "--extractor-args", "youtube:player_client=android", "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "--extractor-args", "youtube:player_client=ios", "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "--extractor-args", "youtube:player_client=mweb,web", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "-f", "best", url, "-o", output_path]
+    ]
+
+    for i, cmd in enumerate(strategies, 1):
+        try:
+            print(f"  Attempt {i}/{len(strategies)}...")
+            res = subprocess.run(cmd, check=True)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 100000:
+                print(f"✅ Download success: {output_path}")
+                return True
+        except Exception as e:
+            print(f"  Attempt {i} failed: {e}")
+
+    print(f"❌ Failed to download {url}")
+    return False
+
 def get_schedule(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4"):
     return [
         # 1 to 10
@@ -128,18 +155,18 @@ def zip_folder(folder_path, output_zip):
     print(f"📦 Zipping '{folder_path}' -> '{output_zip}'...")
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, _, files in os.walk(folder_path):
-            for file in files:
+            for file in sorted(files):
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, folder_path)
                 zipf.write(file_path, arcname)
-    print(f"✅ Created zip: {output_zip}")
+    print(f"✅ Created zip ({os.path.getsize(output_zip) / (1024*1024):.2f} MB): {output_zip}")
 
 def process_slicing(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4", output_dir="downloaded_solo_clips", create_zip=False, zip_name="solo_clips.zip"):
     os.makedirs(output_dir, exist_ok=True)
     schedule = get_schedule(hero_file, heroine_file)
 
     print(f"🎬 Slicing 36 PURE SOLO clips into '{output_dir}' with 120% Tight Smart-Crop...")
-    vf = "scale=4608:2592:force_original_aspect_ratio=increase,crop=3840:2160"
+    vf = "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=24"
 
     for idx, item in enumerate(schedule, 1):
         out_path = os.path.join(output_dir, item["name"])
@@ -152,8 +179,8 @@ def process_slicing(hero_file="hero_master.mp4", heroine_file="heroine_master.mp
                 "-i", item["source"],
                 "-vf", vf,
                 "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "18",
+                "-preset", "veryfast",
+                "-crf", "20",
                 "-an",
                 out_path
             ]
@@ -164,6 +191,25 @@ def process_slicing(hero_file="hero_master.mp4", heroine_file="heroine_master.mp
     print(f"✅ All 36 Solo Clips Processed for {output_dir}")
     if create_zip and os.path.exists(output_dir):
         zip_folder(output_dir, zip_name)
+
+def process_pair_pipeline(pair):
+    print(f"\n==========================================")
+    print(f"🚀 Processing: {pair['name']} ({pair['id']})")
+    print(f"==========================================")
+    
+    # Download hero
+    download_video(pair["hero_url"], pair["hero_file"])
+    # Download heroine
+    download_video(pair["heroine_url"], pair["heroine_file"])
+
+    # Slice clips & create zip
+    process_slicing(
+        hero_file=pair["hero_file"],
+        heroine_file=pair["heroine_file"],
+        output_dir=pair["output_dir"],
+        create_zip=True,
+        zip_name=pair["zip_name"]
+    )
 
 def list_pairs():
     print("📋 Configured Pairs & Direct Links:")
@@ -194,25 +240,11 @@ def main():
     if args.pair:
         if args.pair.lower() == "all":
             for pair in PAIRS:
-                print(f"\n🚀 Processing Pair: {pair['name']}")
-                process_slicing(
-                    hero_file=pair["hero_file"],
-                    heroine_file=pair["heroine_file"],
-                    output_dir=pair["output_dir"],
-                    create_zip=True,
-                    zip_name=pair["zip_name"]
-                )
+                process_pair_pipeline(pair)
         else:
             pair = next((p for p in PAIRS if p["id"] == args.pair or p["id"].endswith(args.pair)), None)
             if pair:
-                print(f"\n🚀 Processing Pair: {pair['name']}")
-                process_slicing(
-                    hero_file=pair["hero_file"],
-                    heroine_file=pair["heroine_file"],
-                    output_dir=pair["output_dir"],
-                    create_zip=True,
-                    zip_name=pair["zip_name"]
-                )
+                process_pair_pipeline(pair)
             else:
                 print(f"❌ Pair '{args.pair}' not found. Run --list-pairs to view available pairs.")
     else:
