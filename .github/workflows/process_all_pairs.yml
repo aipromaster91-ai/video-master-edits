@@ -1,0 +1,80 @@
+name: Download, Slice & Release 7 Solo Clips Pairs
+
+on:
+  workflow_dispatch:
+    inputs:
+      pair_selection:
+        description: 'Select pair to process (or select "all" for all 7 pairs)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - pair_01_yash_kiara
+          - pair_02_yash_huma
+          - pair_03_yash_nayanthara
+          - pair_04_yash_tara
+          - pair_05_shahid_alia
+          - pair_06_ranveer_kriti
+          - pair_07_emraan_kriti
+      release_tag:
+        description: 'GitHub Release Tag'
+        required: true
+        default: 'v1.0-solo-clips'
+
+permissions:
+  contents: write
+
+jobs:
+  process-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg & yt-dlp
+        run: |
+          sudo apt update
+          sudo apt install ffmpeg -y
+          sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Download Master Videos & Slice Clips
+        run: |
+          python3 -c '
+          import os, subprocess, json, sys
+          from slice_solo import PAIRS, process_slicing
+
+          selection = "${{ github.event.inputs.pair_selection }}"
+          target_pairs = PAIRS if selection == "all" else [p for p in PAIRS if p["id"] == selection]
+
+          for p in target_pairs:
+              print(f"=== Downloading & Slicing: {p[\"name\"]} ===")
+              # Download Hero
+              if not os.path.exists(p["hero_file"]):
+                  print(f"Downloading Hero: {p[\"hero_url\"]}")
+                  subprocess.run(["yt-dlp", "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best", "--merge-output-format", "mp4", p["hero_url"], "-o", p["hero_file"]], check=True)
+              # Download Heroine
+              if not os.path.exists(p["heroine_file"]):
+                  print(f"Downloading Heroine: {p[\"heroine_url\"]}")
+                  subprocess.run(["yt-dlp", "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best", "--merge-output-format", "mp4", p["heroine_url"], "-o", p["heroine_file"]], check=True)
+
+              # Run slicing & zipping
+              process_slicing(
+                  hero_file=p["hero_file"],
+                  heroine_file=p["heroine_file"],
+                  output_dir=p["output_dir"],
+                  create_zip=True,
+                  zip_name=p["zip_name"]
+              )
+          '
+
+      - name: Upload Zip Files to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: "7 Solo Clip Pairs Release - ${{ github.event.inputs.release_tag }}"
+          files: "*.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
