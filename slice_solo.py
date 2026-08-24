@@ -5,6 +5,116 @@ import subprocess
 import sys
 import zipfile
 
+YASH_SOURCES = [
+    {"url": "https://www.youtube.com/watch?v=R4He_Gcn7cA", "file": "yash_monster.mp4", "title": "KGF Chapter 2 - The Monster Song"},
+    {"url": "https://www.youtube.com/watch?v=suk3mW0tDPA", "file": "yash_mehabooba.mp4", "title": "KGF Chapter 2 - Mehabooba"},
+]
+
+YASH_CLIPS = [
+    ("yash_monster.mp4", "00:27", "00:30", "Hammer in hand slow-motion walk"),
+    ("yash_monster.mp4", "00:37", "00:40", "Red suit stairs descent alone"),
+    ("yash_monster.mp4", "00:50", "00:53", "White suit cigar smoking walk"),
+    ("yash_mehabooba.mp4", "00:15", "00:19", "Watching sunset from luxury window"),
+    ("yash_monster.mp4", "00:57", "01:00", "Machine gun smoke intense gaze"),
+    ("yash_monster.mp4", "01:10", "01:14", "Brown suit standing tall in fog"),
+    ("yash_mehabooba.mp4", "01:15", "01:19", "Holding glass lost in thoughts"),
+    ("yash_monster.mp4", "01:40", "01:45", "Red blazer sitting on sofa staring"),
+    ("yash_mehabooba.mp4", "02:35", "02:40", "Palace corridor walking alone"),
+    ("yash_monster.mp4", "01:45", "01:50", "Close-up intense eye glance"),
+    ("yash_monster.mp4", "00:12", "00:16", "Back silhouette with machine gun"),
+    ("yash_mehabooba.mp4", "00:35", "00:39", "Side profile deep gaze"),
+    ("yash_monster.mp4", "01:16", "01:20", "Firing machine gun in style"),
+    ("yash_mehabooba.mp4", "02:50", "02:54", "Standing alone by balcony"),
+    ("yash_monster.mp4", "02:00", "02:04", "Dust and fire background walk"),
+    ("yash_mehabooba.mp4", "03:05", "03:09", "Looking into dark distance"),
+    ("yash_monster.mp4", "02:15", "02:19", "Attitude head turn"),
+    ("yash_mehabooba.mp4", "03:25", "03:29", "Slow-motion footsteps in palace"),
+    ("yash_monster.mp4", "02:25", "02:29", "Dramatic shadow posture"),
+    ("yash_mehabooba.mp4", "03:48", "03:54", "Walking away into darkness"),
+]
+
+KIARA_CLIPS = [
+    ("kiara_shershaah.mp4", "00:15", "00:20", "Yellow dupatta smiling by window"),
+    ("kiara_ranjha.mp4", "00:20", "00:25", "Looking up at sky with tearful eyes"),
+    ("kiara_shershaah.mp4", "00:45", "00:50", "Walking in corridor with sweet smile"),
+    ("kiara_ranjha.mp4", "00:50", "00:55", "Bridal pink attire crying in solitude"),
+    ("kiara_shershaah.mp4", "01:15", "01:20", "Looking down with shy smile"),
+    ("kiara_ranjha.mp4", "01:30", "01:35", "Sitting by window in quiet sorrow"),
+    ("kiara_shershaah.mp4", "01:45", "01:50", "Sitting on bench reading letter"),
+    ("kiara_ranjha.mp4", "02:10", "02:15", "Covering face with dupatta in grief"),
+    ("kiara_shershaah.mp4", "02:15", "02:20", "Soft smile in warm sunlight"),
+    ("kiara_ranjha.mp4", "02:45", "02:50", "Slow-motion looking back"),
+    ("kiara_shershaah.mp4", "00:30", "00:34", "Turning around with joyful smile"),
+    ("kiara_ranjha.mp4", "00:35", "00:39", "Tear running down cheek closeup"),
+    ("kiara_shershaah.mp4", "01:00", "01:04", "Wind blowing hair in daylight"),
+    ("kiara_ranjha.mp4", "01:15", "01:19", "Looking down at empty hands"),
+    ("kiara_shershaah.mp4", "02:00", "02:04", "Classroom quiet glance"),
+    ("kiara_ranjha.mp4", "01:55", "01:59", "Looking at distance heartbroken"),
+    ("kiara_shershaah.mp4", "02:30", "02:34", "Cheerful head tilt smile"),
+    ("kiara_ranjha.mp4", "02:25", "02:29", "Closing eyes in sorrow"),
+    ("kiara_shershaah.mp4", "02:45", "02:49", "Waving hand in slow motion"),
+    ("kiara_ranjha.mp4", "02:55", "03:00", "Walking away into the light"),
+]
+
+
+def seq_clips(file_name, start_seconds, step_seconds, count=20, desc_prefix="Pure solo clip"):
+    return [
+        (file_name, seconds_to_ts(start_seconds + i * step_seconds), seconds_to_ts(start_seconds + i * step_seconds + step_seconds), f"{desc_prefix} {i + 1}")
+        for i in range(count)
+    ]
+
+
+def alternating_seq_clips(files, starts, step_seconds, count=20, desc_prefix="Pure solo clip"):
+    clips = []
+    for i in range(count):
+        file_name = files[i % len(files)]
+        start = starts[i]
+        clips.append((file_name, seconds_to_ts(start), seconds_to_ts(start + step_seconds), f"{desc_prefix} {i + 1}"))
+    return clips
+
+
+def seconds_to_ts(total_seconds):
+    total_seconds = int(total_seconds)
+    h = total_seconds // 3600
+    m = (total_seconds % 3600) // 60
+    s = total_seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def normalize_ts(value):
+    """Accept MM:SS, HH:MM:SS, and blueprint values like 00:63."""
+    parts = [int(p) for p in str(value).strip().split(":")]
+    if len(parts) == 2:
+        total = parts[0] * 60 + parts[1]
+    elif len(parts) == 3:
+        total = parts[0] * 3600 + parts[1] * 60 + parts[2]
+    else:
+        raise ValueError(f"Invalid timestamp: {value}")
+    return seconds_to_ts(total)
+
+
+def build_schedule(hero_name, heroine_name, hero_clips, heroine_clips):
+    schedule = []
+    for i in range(20):
+        h_source, h_start, h_end, h_desc = hero_clips[i]
+        f_source, f_start, f_end, f_desc = heroine_clips[i]
+        schedule.append({
+            "source": h_source,
+            "start": normalize_ts(h_start),
+            "end": normalize_ts(h_end),
+            "name": f"Clip_{2*i+1:02d}_{hero_name}.mp4",
+            "description": h_desc,
+        })
+        schedule.append({
+            "source": f_source,
+            "start": normalize_ts(f_start),
+            "end": normalize_ts(f_end),
+            "name": f"Clip_{2*i+2:02d}_{heroine_name}.mp4",
+            "description": f_desc,
+        })
+    return schedule
+
+
 PAIRS = [
     {
         "id": "pair_01_yash_kiara",
@@ -15,6 +125,15 @@ PAIRS = [
         "heroine_file": "kiara_master.mp4",
         "output_dir": "downloaded_solo_clips_yash_kiara",
         "zip_name": "yash_kiara_solo_clips.zip"
+        "hero_label": "Yash",
+        "heroine_label": "Kiara",
+        "sources": YASH_SOURCES + [
+            {"url": "https://www.youtube.com/watch?v=gvyUuxdRdR4", "file": "kiara_shershaah.mp4", "title": "Shershaah - Raataan Lambiyan"},
+            {"url": "https://www.youtube.com/watch?v=V7LwfY5U5WI", "file": "kiara_ranjha.mp4", "title": "Shershaah - Ranjha"},
+        ],
+        "schedule": build_schedule("Yash", "Kiara", YASH_CLIPS, KIARA_CLIPS),
+        "output_dir": "downloaded_clips_yash_kiara",
+        "zip_name": "yash_kiara_solo_clips.zip",
     },
     {
         "id": "pair_02_yash_huma",
@@ -25,6 +144,14 @@ PAIRS = [
         "heroine_file": "huma_master.mp4",
         "output_dir": "downloaded_solo_clips_yash_huma",
         "zip_name": "yash_huma_solo_clips.zip"
+        "hero_label": "Yash",
+        "heroine_label": "Huma",
+        "sources": YASH_SOURCES + [
+            {"url": "https://www.youtube.com/watch?v=tLqhnrxLKoA", "file": "huma_badlapur.mp4", "title": "Badlapur - Jeena Jeena"},
+        ],
+        "schedule": build_schedule("Yash", "Huma", YASH_CLIPS, seq_clips("huma_badlapur.mp4", 19, 4, desc_prefix="Pure solo emotional expression / gaze")),
+        "output_dir": "downloaded_clips_yash_huma",
+        "zip_name": "yash_huma_solo_clips.zip",
     },
     {
         "id": "pair_03_yash_nayanthara",
@@ -35,6 +162,14 @@ PAIRS = [
         "heroine_file": "nayanthara_master.mp4",
         "output_dir": "downloaded_solo_clips_yash_nayanthara",
         "zip_name": "yash_nayanthara_solo_clips.zip"
+        "hero_label": "Yash",
+        "heroine_label": "Nayanthara",
+        "sources": YASH_SOURCES + [
+            {"url": "https://www.youtube.com/watch?v=VAdGW7QDJiU", "file": "nayan_jawan.mp4", "title": "Jawan - Chaleya"},
+        ],
+        "schedule": build_schedule("Yash", "Nayanthara", YASH_CLIPS, seq_clips("nayan_jawan.mp4", 19, 4, desc_prefix="White dress swagger & daylight smile")),
+        "output_dir": "downloaded_clips_yash_nayanthara",
+        "zip_name": "yash_nayanthara_solo_clips.zip",
     },
     {
         "id": "pair_04_yash_tara",
@@ -45,6 +180,25 @@ PAIRS = [
         "heroine_file": "tara_master.mp4",
         "output_dir": "downloaded_solo_clips_yash_tara",
         "zip_name": "yash_tara_solo_clips.zip"
+        "hero_label": "Yash",
+        "heroine_label": "Tara",
+        "sources": YASH_SOURCES + [
+            {"url": "https://www.youtube.com/watch?v=kpv4N55sJfs", "file": "tara_marjaavaan.mp4", "title": "Marjaavaan - Tum Hi Aana"},
+            {"url": "https://www.youtube.com/watch?v=Zf_n5TqA9_g", "file": "tara_shaamat.mp4", "title": "Ek Villain Returns - Shaamat"},
+        ],
+        "schedule": build_schedule(
+            "Yash",
+            "Tara",
+            YASH_CLIPS,
+            alternating_seq_clips(
+                ["tara_marjaavaan.mp4", "tara_shaamat.mp4"],
+                [21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78],
+                4,
+                desc_prefix="Solo white dress / rockstar stage performance",
+            ),
+        ),
+        "output_dir": "downloaded_clips_yash_tara",
+        "zip_name": "yash_tara_solo_clips.zip",
     },
     {
         "id": "pair_05_shahid_alia",
@@ -55,6 +209,22 @@ PAIRS = [
         "heroine_file": "alia_master.mp4",
         "output_dir": "downloaded_solo_clips_shahid_alia",
         "zip_name": "shahid_alia_solo_clips.zip"
+        "hero_label": "Shahid",
+        "heroine_label": "Alia",
+        "sources": [
+            {"url": "https://www.youtube.com/watch?v=Ps4aVpIESkc", "file": "shahid_kabir.mp4", "title": "Kabir Singh - Bekhayali"},
+            {"url": "https://www.youtube.com/watch?v=XLqmL9cPN1E", "file": "shahid_tbmauj.mp4", "title": "TBMAUJ Title Track"},
+            {"url": "https://www.youtube.com/watch?v=BddP6PYo2gs", "file": "alia_kesariya.mp4", "title": "Brahmastra - Kesariya"},
+            {"url": "https://www.youtube.com/watch?v=hacByYwJ_a4", "file": "alia_tumkyamile.mp4", "title": "Rocky Aur Rani - Tum Kya Mile"},
+        ],
+        "schedule": build_schedule(
+            "Shahid",
+            "Alia",
+            alternating_seq_clips(["shahid_kabir.mp4", "shahid_tbmauj.mp4"], [19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63, 67, 71, 75, 79, 83, 87, 91, 95], 4, desc_prefix="Balcony smoke / dance swagger attitude"),
+            alternating_seq_clips(["alia_kesariya.mp4", "alia_tumkyamile.mp4"], [23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80], 4, desc_prefix="Yellow boat smile / snow mountain chiffon saree"),
+        ),
+        "output_dir": "downloaded_clips_shahid_alia",
+        "zip_name": "shahid_alia_solo_clips.zip",
     },
     {
         "id": "pair_06_ranveer_kriti",
@@ -65,6 +235,22 @@ PAIRS = [
         "heroine_file": "kriti_master.mp4",
         "output_dir": "downloaded_solo_clips_ranveer_kriti",
         "zip_name": "ranveer_kriti_solo_clips.zip"
+        "hero_label": "Ranveer",
+        "heroine_label": "Kriti",
+        "sources": [
+            {"url": "https://www.youtube.com/watch?v=jFGKJBPFdUA", "file": "ranveer_gully.mp4", "title": "Gully Boy - Apna Time Aayega"},
+            {"url": "https://www.youtube.com/watch?v=hacByYwJ_a4", "file": "ranveer_tumkyamile.mp4", "title": "Rocky Aur Rani - Tum Kya Mile"},
+            {"url": "https://www.youtube.com/watch?v=bTw7tT82W2k", "file": "kriti_shehzada.mp4", "title": "Shehzada - Chedkhaniyan"},
+            {"url": "https://www.youtube.com/watch?v=lBvbNxiVmZA", "file": "kriti_dopatti.mp4", "title": "Do Patti - Raanjhan"},
+        ],
+        "schedule": build_schedule(
+            "Ranveer",
+            "Kriti",
+            alternating_seq_clips(["ranveer_gully.mp4", "ranveer_tumkyamile.mp4"], [19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63, 67, 71, 75, 79, 83, 87, 91, 95], 4, desc_prefix="Gully boy hoodie mic / snow mountain walk"),
+            alternating_seq_clips(["kriti_shehzada.mp4", "kriti_dopatti.mp4"], [23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80], 4, desc_prefix="Pink sweets dress smile / red bar counter gaze"),
+        ),
+        "output_dir": "downloaded_clips_ranveer_kriti",
+        "zip_name": "ranveer_kriti_solo_clips.zip",
     },
     {
         "id": "pair_07_emraan_kriti",
@@ -76,10 +262,29 @@ PAIRS = [
         "output_dir": "downloaded_solo_clips_emraan_kriti",
         "zip_name": "emraan_kriti_solo_clips.zip"
     }
+        "hero_label": "Emraan",
+        "heroine_label": "Kriti",
+        "sources": [
+            {"url": "https://www.youtube.com/watch?v=sCbbMZ-q4-I", "file": "emraan_lutgaye.mp4", "title": "Lut Gaye"},
+            {"url": "https://www.youtube.com/watch?v=f3FFOBrMmdg", "file": "emraan_kahani.mp4", "title": "Hamari Adhuri Kahani"},
+            {"url": "https://www.youtube.com/watch?v=bTw7tT82W2k", "file": "kriti_shehzada.mp4", "title": "Shehzada - Chedkhaniyan"},
+            {"url": "https://www.youtube.com/watch?v=lBvbNxiVmZA", "file": "kriti_dopatti.mp4", "title": "Do Patti - Raanjhan"},
+        ],
+        "schedule": build_schedule(
+            "Emraan",
+            "Kriti",
+            alternating_seq_clips(["emraan_lutgaye.mp4", "emraan_kahani.mp4"], [22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94, 98], 4, desc_prefix="Black suit cigarette smoke / rain solitude"),
+            alternating_seq_clips(["kriti_shehzada.mp4", "kriti_dopatti.mp4"], [23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80], 4, desc_prefix="Palace hallway look / tearful breakdown"),
+        ),
+        "output_dir": "downloaded_clips_emraan_kriti",
+        "zip_name": "emraan_kriti_solo_clips.zip",
+    },
 ]
+
 
 def download_video(url, output_path):
     if os.path.exists(output_path) and os.path.getsize(output_path) > 1000000:
+    if os.path.exists(output_path) and os.path.getsize(output_path) > 1_000_000:
         print(f"✅ Video already downloaded: {output_path}")
         return True
 
@@ -89,6 +294,10 @@ def download_video(url, output_path):
         ["yt-dlp", "--extractor-args", "youtube:player_client=ios", "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best", "--merge-output-format", "mp4", url, "-o", output_path],
         ["yt-dlp", "--extractor-args", "youtube:player_client=mweb,web", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", url, "-o", output_path],
         ["yt-dlp", "-f", "best", url, "-o", output_path]
+        ["yt-dlp", "--extractor-args", "youtube:player_client=android", "-f", "bv*[height<=2160][ext=mp4]+ba[ext=m4a]/bv*+ba/b", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "--extractor-args", "youtube:player_client=ios", "-f", "bv*[height<=2160][ext=mp4]+ba[ext=m4a]/bv*+ba/b", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "-f", "bv*[height<=2160]+ba/best", "--merge-output-format", "mp4", url, "-o", output_path],
+        ["yt-dlp", "-f", "best", url, "-o", output_path],
     ]
 
     for i, cmd in enumerate(strategies, 1):
@@ -96,11 +305,11 @@ def download_video(url, output_path):
             print(f"  Attempt {i}/{len(strategies)}...")
             res = subprocess.run(cmd, check=True)
             if os.path.exists(output_path) and os.path.getsize(output_path) > 100000:
+            subprocess.run(cmd, check=True)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 100_000:
                 print(f"✅ Download success: {output_path}")
                 return True
         except Exception as e:
-            print(f"  Attempt {i} failed: {e}")
-
     print(f"❌ Failed to download {url}")
     return False
 
@@ -154,46 +363,65 @@ def get_schedule(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4")
 def zip_folder(folder_path, output_zip):
     print(f"📦 Zipping '{folder_path}' -> '{output_zip}'...")
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, _, files in os.walk(folder_path):
             for file in sorted(files):
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, folder_path)
                 zipf.write(file_path, arcname)
     print(f"✅ Created zip ({os.path.getsize(output_zip) / (1024*1024):.2f} MB): {output_zip}")
+    print(f"✅ Created zip ({os.path.getsize(output_zip) / (1024 * 1024):.2f} MB): {output_zip}")
 
 def process_slicing(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4", output_dir="downloaded_solo_clips", create_zip=False, zip_name="solo_clips.zip"):
+
+def get_schedule(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4"):
+    """Legacy generic 40-clip schedule for manually supplied hero/heroine files."""
+    hero = [(hero_file, seconds_to_ts(15 + i * 10), seconds_to_ts(20 + i * 10), f"Manual hero solo {i + 1}") for i in range(20)]
+    heroine = [(heroine_file, seconds_to_ts(20 + i * 10), seconds_to_ts(25 + i * 10), f"Manual heroine solo {i + 1}") for i in range(20)]
+    return build_schedule("Male", "Female", hero, heroine)
+
+
+def process_slicing(hero_file="hero_master.mp4", heroine_file="heroine_master.mp4", output_dir="downloaded_solo_clips", create_zip=False, zip_name="solo_clips.zip", schedule=None):
     os.makedirs(output_dir, exist_ok=True)
     schedule = get_schedule(hero_file, heroine_file)
+    schedule = schedule or get_schedule(hero_file, heroine_file)
 
     print(f"🎬 Slicing 36 PURE SOLO clips into '{output_dir}' with 120% Tight Smart-Crop...")
     vf = "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=24"
+    print(f"🎬 Slicing {len(schedule)} PURE SOLO clips into '{output_dir}' with 125% 4K Smart-Crop...")
+    vf = "scale=4800:2700:force_original_aspect_ratio=increase,crop=3840:2160,fps=24"
 
     for idx, item in enumerate(schedule, 1):
         out_path = os.path.join(output_dir, item["name"])
         print(f"[{idx}/36] Slicing {item['name']} ({item['start']} -> {item['end']}) from {item['source']}...")
+        print(f"[{idx}/{len(schedule)}] {item['name']} ({item['start']} -> {item['end']}) from {item['source']} - {item.get('description', '')}")
         if os.path.exists(item["source"]):
             cmd = [
                 "ffmpeg", "-y",
-                "-ss", item["start"],
-                "-to", item["end"],
-                "-i", item["source"],
                 "-vf", vf,
                 "-c:v", "libx264",
                 "-preset", "veryfast",
                 "-crf", "20",
+                "-crf", "18",
+                "-pix_fmt", "yuv420p",
                 "-an",
                 out_path
+                out_path,
             ]
             subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(cmd, check=True)
         else:
             print(f"⚠️ Source file {item['source']} not found. Skipping slice execution.")
 
     print(f"✅ All 36 Solo Clips Processed for {output_dir}")
+    print(f"✅ All {len(schedule)} Solo Clips Processed for {output_dir}")
     if create_zip and os.path.exists(output_dir):
         zip_folder(output_dir, zip_name)
 
+
 def process_pair_pipeline(pair):
     print(f"\n==========================================")
+    print("\n==========================================")
     print(f"🚀 Processing: {pair['name']} ({pair['id']})")
     print(f"==========================================")
     
@@ -203,50 +431,74 @@ def process_pair_pipeline(pair):
     download_video(pair["heroine_url"], pair["heroine_file"])
 
     # Slice clips & create zip
+    print("==========================================")
+
+    for source in pair["sources"]:
+        download_video(source["url"], source["file"])
+
     process_slicing(
         hero_file=pair["hero_file"],
         heroine_file=pair["heroine_file"],
         output_dir=pair["output_dir"],
         create_zip=True,
         zip_name=pair["zip_name"]
+        zip_name=pair["zip_name"],
+        schedule=pair["schedule"],
     )
 
 def list_pairs():
     print("📋 Configured Pairs & Direct Links:")
     print("=" * 60)
+
+def list_pairs(show_clips=False):
+    print("📋 Configured 7 Pairs, Sources & ZIP Outputs:")
+    print("=" * 80)
     for idx, pair in enumerate(PAIRS, 1):
         print(f"{idx}. {pair['name']} ({pair['id']})")
         print(f"   Hero URL: {pair['hero_url']}")
         print(f"   Heroine URL: {pair['heroine_url']}")
+        print(f"   Output Folder: {pair['output_dir']}")
         print(f"   Zip File Output: {pair['zip_name']}")
         print("-" * 60)
+        print("   Sources:")
+        for source in pair["sources"]:
+            print(f"     - {source['file']}: {source['url']}")
+        if show_clips:
+            print("   40 Clips:")
+            for item in pair["schedule"]:
+                print(f"     - {item['name']}: {item['source']} {item['start']}-{item['end']}")
+        print("-" * 80)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Universal 100% Solo Slicing Script")
+    parser = argparse.ArgumentParser(description="Universal 7-pair 40 solo clip slicing script")
     parser.add_argument("--list-pairs", action="store_true", help="List all 7 preconfigured pairs and YouTube links")
+    parser.add_argument("--show-clips", action="store_true", help="With --list-pairs, also show all 40 clip intervals per pair")
     parser.add_argument("--pair", type=str, default=None, help="Process specific pair ID or 'all'")
     parser.add_argument("--hero", type=str, default="hero_master.mp4", help="Hero master mp4 file")
     parser.add_argument("--heroine", type=str, default="heroine_master.mp4", help="Heroine master mp4 file")
     parser.add_argument("--output-dir", type=str, default="downloaded_solo_clips", help="Output directory")
     parser.add_argument("--zip", action="store_true", help="Zip the output folder after slicing")
     parser.add_argument("--zip-name", type=str, default="downloaded_solo_clips.zip", help="Output zip filename")
+    parser.add_argument("--hero", type=str, default="hero_master.mp4", help="Hero master mp4 file for manual mode")
+    parser.add_argument("--heroine", type=str, default="heroine_master.mp4", help="Heroine master mp4 file for manual mode")
+    parser.add_argument("--output-dir", type=str, default="downloaded_solo_clips", help="Output directory for manual mode")
+    parser.add_argument("--zip", action="store_true", help="Zip the output folder after slicing in manual mode")
+    parser.add_argument("--zip-name", type=str, default="downloaded_solo_clips.zip", help="Output zip filename for manual mode")
 
     args = parser.parse_args()
 
     if args.list_pairs:
         list_pairs()
+        list_pairs(args.show_clips)
         return
 
     if args.pair:
-        if args.pair.lower() == "all":
-            for pair in PAIRS:
-                process_pair_pipeline(pair)
-        else:
-            pair = next((p for p in PAIRS if p["id"] == args.pair or p["id"].endswith(args.pair)), None)
-            if pair:
                 process_pair_pipeline(pair)
             else:
                 print(f"❌ Pair '{args.pair}' not found. Run --list-pairs to view available pairs.")
+                raise SystemExit(1)
     else:
         process_slicing(
             hero_file=args.hero,
@@ -254,7 +506,9 @@ def main():
             output_dir=args.output_dir,
             create_zip=args.zip,
             zip_name=args.zip_name
+            zip_name=args.zip_name,
         )
+
 
 if __name__ == "__main__":
     main()
