@@ -104,4 +104,4 @@ jobs:
           name: "40 Solo Clips ZIP Release - ${{ github.event.inputs.release_tag }}"
           files: "*.zip"
         env:
-          GITHUB_TOKEN: ${{ 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 }}
+          GITHUB_TOKEN: ${{ secrets.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 }}
